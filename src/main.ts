@@ -1,4 +1,4 @@
-import { Plugin, Editor, TFile, MarkdownPostProcessorContext, Modal, Setting, setIcon } from "obsidian";
+import { Plugin, Editor, TFile, MarkdownPostProcessorContext, setIcon } from "obsidian";
 import { TellATaleSettings, DEFAULT_SETTINGS } from "./settings";
 import { TellATaleSettingTab } from "./settingsTab";
 import { insertBlock } from "./editor/insertBlock";
@@ -9,7 +9,6 @@ import {
   getBlockTitle,
   buildBlockLines,
   replaceBlockInFile,
-  deleteBlockFromFile,
 } from "./editor/sourceBlock";
 import { CharacterPickerModal } from "./modals/CharacterPickerModal";
 import { CastChangeModal } from "./modals/CastChangeModal";
@@ -33,15 +32,9 @@ export default class TellATalePlugin extends Plugin {
     this.addCommand({
       id: "insert-dialogue",
       name: "Insert Dialogue",
+      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "D" }],
       editorCallback: (editor: Editor) => {
-        const chars = this.getVaultCharacters();
-        if (chars.length === 0) {
-          insertBlock(editor, "tat-dialogue");
-          return;
-        }
-        new CharacterPickerModal(this.app, chars, (char) => {
-          insertBlock(editor, "tat-dialogue", char ?? undefined);
-        }).open();
+        this.insertDialogue(editor);
       },
     });
 
@@ -49,15 +42,9 @@ export default class TellATalePlugin extends Plugin {
     this.addCommand({
       id: "insert-monologue",
       name: "Insert Monologue",
+      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "M" }],
       editorCallback: (editor: Editor) => {
-        const chars = this.getVaultCharacters();
-        if (chars.length === 0) {
-          insertBlock(editor, "tat-monologue");
-          return;
-        }
-        new CharacterPickerModal(this.app, chars, (char) => {
-          insertBlock(editor, "tat-monologue", char ?? undefined);
-        }).open();
+        this.insertMonologue(editor);
       },
     });
 
@@ -65,6 +52,7 @@ export default class TellATalePlugin extends Plugin {
     this.addCommand({
       id: "insert-narration",
       name: "Insert Narration",
+      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "O" }],
       editorCallback: (editor: Editor) => {
         insertBlock(editor, "tat-narration");
       },
@@ -74,6 +62,7 @@ export default class TellATalePlugin extends Plugin {
     this.addCommand({
       id: "insert-direction",
       name: "Insert Direction",
+      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "G" }],
       editorCallback: (editor: Editor) => {
         insertBlock(editor, "tat-direction");
       },
@@ -83,10 +72,69 @@ export default class TellATalePlugin extends Plugin {
     this.addCommand({
       id: "insert-cast-change",
       name: "Insert Cast Change",
+      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "A" }],
       editorCallback: (editor: Editor) => {
         new CastChangeModal(this.app, this, editor).open();
       },
     });
+
+    // ── Editor right-click context menu ───────────────────────────────────────
+    this.registerEvent(
+      this.app.workspace.on("editor-menu", (menu, editor) => {
+        menu.addItem((item) => {
+          item.setTitle("Tell-A-Tale").setIcon("book-text");
+          const sub = item.setSubmenu();
+
+          sub.addItem((i) =>
+            i.setTitle("Insert Dialogue").setIcon("message-circle").onClick(() => {
+              this.insertDialogue(editor);
+            })
+          );
+          sub.addItem((i) =>
+            i.setTitle("Insert Monologue").setIcon("brain").onClick(() => {
+              this.insertMonologue(editor);
+            })
+          );
+          sub.addItem((i) =>
+            i.setTitle("Insert Narration").setIcon("book-open").onClick(() => {
+              insertBlock(editor, "tat-narration");
+            })
+          );
+          sub.addItem((i) =>
+            i.setTitle("Insert Direction").setIcon("video").onClick(() => {
+              insertBlock(editor, "tat-direction");
+            })
+          );
+          sub.addItem((i) =>
+            i.setTitle("Insert Cast Change").setIcon("users").onClick(() => {
+              new CastChangeModal(this.app, this, editor).open();
+            })
+          );
+        });
+      })
+    );
+  }
+
+  private insertDialogue(editor: Editor): void {
+    const chars = this.getVaultCharacters();
+    if (chars.length === 0) {
+      insertBlock(editor, "tat-dialogue");
+      return;
+    }
+    new CharacterPickerModal(this.app, chars, (char) => {
+      insertBlock(editor, "tat-dialogue", char ?? undefined);
+    }).open();
+  }
+
+  private insertMonologue(editor: Editor): void {
+    const chars = this.getVaultCharacters();
+    if (chars.length === 0) {
+      insertBlock(editor, "tat-monologue");
+      return;
+    }
+    new CharacterPickerModal(this.app, chars, (char) => {
+      insertBlock(editor, "tat-monologue", char ?? undefined);
+    }).open();
   }
 
   getVaultCharacters(): Character[] {
@@ -192,28 +240,6 @@ export default class TellATalePlugin extends Plugin {
         })();
       });
 
-      // Delete button
-      const deleteBtn = actions.createEl("button", {
-        cls: "tat-action-btn tat-action-delete",
-        attr: { "aria-label": "Delete block" },
-      });
-      setIcon(deleteBtn, "trash-2");
-      deleteBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-
-        this.confirmDelete(() => {
-          void (async () => {
-            const loc = await findBlockLocation(
-              this.app, ctx.sourcePath, calloutType, charId,
-              sectionIndex, sectionInfo?.lineStart, sectionInfo?.lineEnd
-            );
-            if (!loc) return;
-
-            await deleteBlockFromFile(this.app, ctx.sourcePath, loc);
-          })();
-        });
-      });
     });
   }
 
@@ -225,21 +251,4 @@ export default class TellATalePlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
-  private confirmDelete(onConfirm: () => void): void {
-    const modal = new Modal(this.app);
-    modal.titleEl.setText("Delete block?");
-    modal.contentEl.createEl("p", {
-      text: "This can be undone with Ctrl+Z (Cmd+Z on Mac).",
-      cls: "setting-item-description",
-    });
-    new Setting(modal.contentEl)
-      .addButton((btn) => btn.setButtonText("Cancel").onClick(() => modal.close()))
-      .addButton((btn) =>
-        btn.setButtonText("Delete").onClick(() => {
-          modal.close();
-          onConfirm();
-        })
-      );
-    modal.open();
-  }
 }
