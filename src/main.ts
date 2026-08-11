@@ -1,4 +1,4 @@
-import { Plugin, Editor, TFile, MarkdownPostProcessorContext, setIcon } from "obsidian";
+import { Plugin, Editor, Menu, TFile, MarkdownPostProcessorContext, setIcon } from "obsidian";
 import { TellATaleSettings, DEFAULT_SETTINGS } from "./settings";
 import { TellATaleSettingTab } from "./settingsTab";
 import { insertBlock } from "./editor/insertBlock";
@@ -82,8 +82,9 @@ export default class TellATalePlugin extends Plugin {
     this.registerEvent(
       this.app.workspace.on("editor-menu", (menu, editor) => {
         menu.addItem((item) => {
-          item.setTitle("Tell-A-Tale").setIcon("book-text");
-          const sub = item.setSubmenu();
+          item.setTitle("Tell-A-Tale").setIcon("book-text").setSection("tell-a-tale");
+          // setSubmenu exists at runtime but is absent from the installed type definitions
+          const sub = (item as unknown as { setSubmenu(): Menu }).setSubmenu();
 
           sub.addItem((i) =>
             i.setTitle("Insert Dialogue").setIcon("message-circle").onClick(() => {

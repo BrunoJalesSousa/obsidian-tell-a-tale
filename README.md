@@ -1,6 +1,8 @@
 # Tell-A-Tale
 
-An Obsidian plugin for storytelling — write dialogue, monologue, narration, and scene direction with structured, visually distinct blocks. The objective was to put together a way to speedup dialogue construction while keeping it visually telling.
+An Obsidian plugin for storytelling — write dialogue, monologue, narration, and scene direction with structured, visually distinct blocks. The objective was to put together a way to speedup dialogue construction while keeping it visually telling in a way that resembles visual novels.
+
+Important to note this is a WIP, many things might change along the way, or even break as it evolves. Expect some bugs here and there.
 
 ---
 
@@ -29,7 +31,7 @@ An Obsidian plugin for storytelling — write dialogue, monologue, narration, an
 Characters are discovered from your vault automatically — no manual entry needed.
 
 1. Create a note for each character (e.g. `Alice.md`)
-2. Add the character tag to the note's properties (default tag: `dialogue-character`)
+2. Add the character tag to the note's properties (default tag: `dialogue-character`, but whatever tag you use, can be changed in the settings)
 3. Optionally add frontmatter properties:
    - `name` — display name shown in blocks and the picker (defaults to filename)
    - `color` — hex color used to tint their blocks, e.g. `#e06c75`
@@ -61,7 +63,7 @@ Any image format Obsidian supports works. Avatars appear beside dialogue and mon
 
 ## Block Types
 
-All blocks are stored as Obsidian callouts, so they're readable as plain Markdown even without the plugin.
+All blocks are stored as Obsidian callouts, so they're readable as plain Markdown even without the plugin. They are relatively easy to understand, so that even if you don't want to use the edit button available, doing it manually isn't an awful experience. All of these block types can also be inserted using right-click submenu.
 
 ### Dialogue
 A spoken line by a named character.
@@ -181,6 +183,12 @@ npm run build
 ```
 
 After building, copy `main.js`, `styles.css`, and `manifest.json` to your vault's `.obsidian/plugins/tell-a-tale/` folder.
+
+---
+
+## Author notes
+
+This plugin appeared from a personal need to organize dialogues without the need to insert special characters and complicated combinations in such a way that it helps me with story writing for a game I'm working on. The solution I found was this "shortcut driven" writting, with some modals for sections that have more configurations. As such, this comes from a very personal need, and development will likely tilt heavily towards that, instead of a more generic use. With that said, I'm open for suggestions, and of course, while continuous support by me won't be garanteed, as this is something I'll be using personally, bugs should be fixed within a reasonable amount of time. Any subject, you can always contact me @ bruno@jalescode.dev. 
 
 ---
 

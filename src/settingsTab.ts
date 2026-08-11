@@ -28,8 +28,11 @@ export class TellATaleSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.characterTag)
           .onChange((value) => {
             this.plugin.settings.characterTag = value.trim() || "dialogue-character";
-            void this.plugin.saveSettings().then(() => { this.display(); });
+            void this.plugin.saveSettings();
           })
+      )
+      .addButton((btn) =>
+        btn.setButtonText("Reload").onClick(() => { this.display(); })
       );
 
     // ── Character chips ───────────────────────────────────────────────────────
@@ -97,35 +100,6 @@ export class TellATaleSettingTab extends PluginSettingTab {
       text: 'Avatar images must be embedded in the character\'s note and named with the prefix "tat-avatar-" ' +
             '(e.g. ![[tat-avatar-alice.png]]). Any image format Obsidian supports works.',
       cls: "setting-item-description",
-    });
-
-    // ── Hotkeys Reference ─────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Hotkeys").setHeading();
-    containerEl.createEl("p", {
-      text: 'Remap any shortcut in Settings → Hotkeys → search "Tell-A-Tale".',
-      cls: "setting-item-description",
-    });
-
-    const hotkeysWrap = containerEl.createDiv({ cls: "tat-hotkeys-wrap" });
-
-    const rows: [string, string][] = [
-      ["Insert Dialogue", "Mod+Shift+D"],
-      ["Insert Monologue", "Mod+Shift+M"],
-      ["Insert Narration", "Mod+Shift+O"],
-      ["Insert Direction", "Mod+Shift+G"],
-      ["Insert Cast Change", "Mod+Shift+A"],
-    ];
-
-    rows.forEach(([action, shortcut]) => {
-      const card = hotkeysWrap.createDiv({ cls: "tat-hotkey-card" });
-      card.createSpan({ text: action, cls: "tat-hotkey-action" });
-      const kbdWrap = card.createDiv({ cls: "tat-kbd-wrap" });
-      shortcut.split("+").forEach((key, i, arr) => {
-        kbdWrap.createEl("kbd", { text: key, cls: "tat-kbd" });
-        if (i < arr.length - 1) {
-          kbdWrap.createSpan({ text: " + ", cls: "tat-kbd-sep" });
-        }
-      });
     });
   }
 }
