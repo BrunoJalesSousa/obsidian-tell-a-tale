@@ -9,7 +9,7 @@ export function getVaultCharacters(app: App, characterTag: string): Character[] 
     .filter((file) => {
       const cache = app.metadataCache.getFileCache(file);
       if (!cache) return false;
-      const tags = (getAllTags(cache) ?? []) as string[];
+      const tags = getAllTags(cache) ?? [];
       return tags.includes(tag);
     })
     .map((file) => {
@@ -49,14 +49,19 @@ function generateColor(name: string): string {
   return hslToHex(hue, 65, 62);
 }
 
+function hslChannel(h: number, a: number, ln: number, n: number): string {
+  const k: number = (n + h / 30) % 12;
+  const minVal: number = Math.min(k - 3, 9 - k, 1);
+  const maxVal: number = Math.max(minVal, -1);
+  const c: number = ln - a * maxVal;
+  const byte: number = Math.round(255 * c);
+  const hexStr: string = byte.toString(16);
+  return hexStr.padStart(2, "0");
+}
+
 function hslToHex(h: number, s: number, l: number): string {
-  const sn = s / 100;
-  const ln = l / 100;
-  const a = sn * Math.min(ln, 1 - ln);
-  const f = (n: number): string => {
-    const k = (n + h / 30) % 12;
-    const c = ln - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-    return Math.round(255 * c).toString(16).padStart(2, "0");
-  };
-  return `#${f(0)}${f(8)}${f(4)}`;
+  const sn: number = s / 100;
+  const ln: number = l / 100;
+  const a: number = sn * Math.min(ln, 1 - ln);
+  return `#${hslChannel(h, a, ln, 0)}${hslChannel(h, a, ln, 8)}${hslChannel(h, a, ln, 4)}`;
 }

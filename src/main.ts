@@ -128,7 +128,7 @@ export default class TellATalePlugin extends Plugin {
       // starts at the same horizontal position regardless of whether the
       // character has an image.
       if (CHAR_TYPES.has(calloutType) && this.settings.showAvatars) {
-        const wrap = callout.createEl("div", { cls: "tat-avatar-wrap" });
+        const wrap = callout.createDiv({ cls: "tat-avatar-wrap" });
         if (char?.avatarPath) {
           const avatarFile = this.app.vault.getAbstractFileByPath(char.avatarPath);
           if (avatarFile instanceof TFile) {
@@ -147,8 +147,8 @@ export default class TellATalePlugin extends Plugin {
       const titleEl = callout.querySelector<HTMLElement>(".callout-title");
       const isTitleHidden = calloutType === "tat-narration" || calloutType === "tat-direction";
       const actions = isTitleHidden
-        ? callout.createEl("div", { cls: "tat-actions tat-actions-overlay" })
-        : titleEl?.createEl("div", { cls: "tat-actions" });
+        ? callout.createDiv({ cls: "tat-actions tat-actions-overlay" })
+        : titleEl?.createDiv({ cls: "tat-actions" });
       if (!actions) return;
 
       // Edit button

@@ -35,7 +35,7 @@ export class TellATaleSettingTab extends PluginSettingTab {
     // ── Character chips ───────────────────────────────────────────────────────
     const chars = this.plugin.getVaultCharacters();
 
-    const chipsSection = containerEl.createEl("div", { cls: "tat-chips-section" });
+    const chipsSection = containerEl.createDiv({ cls: "tat-chips-section" });
 
     chipsSection.createEl("p", {
       text: `Detected characters — ${chars.length}`,
@@ -48,10 +48,10 @@ export class TellATaleSettingTab extends PluginSettingTab {
         cls: "setting-item-description tat-chips-empty",
       });
     } else {
-      const chipsWrap = chipsSection.createEl("div", { cls: "tat-chips-wrap" });
+      const chipsWrap = chipsSection.createDiv({ cls: "tat-chips-wrap" });
 
       chars.forEach((char) => {
-        const chip = chipsWrap.createEl("div", { cls: "tat-chip" });
+        const chip = chipsWrap.createDiv({ cls: "tat-chip" });
         chip.setCssProps({
           "--tat-chip-color": char.color,
           "--tat-chip-border": char.color + "55",
@@ -60,12 +60,12 @@ export class TellATaleSettingTab extends PluginSettingTab {
           "--tat-chip-id-bg": char.color + "25",
         });
 
-        chip.createEl("span", { cls: "tat-chip-dot" });
-        chip.createEl("span", { text: char.name, cls: "tat-chip-name" });
-        chip.createEl("span", { text: char.id, cls: "tat-chip-id" });
+        chip.createSpan({ cls: "tat-chip-dot" });
+        chip.createSpan({ text: char.name, cls: "tat-chip-name" });
+        chip.createSpan({ text: char.id, cls: "tat-chip-id" });
 
         if (char.avatarPath) {
-          chip.createEl("span", { text: "avatar", cls: "tat-chip-avatar" });
+          chip.createSpan({ text: "avatar", cls: "tat-chip-avatar" });
         }
       });
     }
@@ -106,7 +106,7 @@ export class TellATaleSettingTab extends PluginSettingTab {
       cls: "setting-item-description",
     });
 
-    const hotkeysWrap = containerEl.createEl("div", { cls: "tat-hotkeys-wrap" });
+    const hotkeysWrap = containerEl.createDiv({ cls: "tat-hotkeys-wrap" });
 
     const rows: [string, string][] = [
       ["Insert Dialogue", "Mod+Shift+D"],
@@ -117,13 +117,13 @@ export class TellATaleSettingTab extends PluginSettingTab {
     ];
 
     rows.forEach(([action, shortcut]) => {
-      const card = hotkeysWrap.createEl("div", { cls: "tat-hotkey-card" });
-      card.createEl("span", { text: action, cls: "tat-hotkey-action" });
-      const kbdWrap = card.createEl("div", { cls: "tat-kbd-wrap" });
+      const card = hotkeysWrap.createDiv({ cls: "tat-hotkey-card" });
+      card.createSpan({ text: action, cls: "tat-hotkey-action" });
+      const kbdWrap = card.createDiv({ cls: "tat-kbd-wrap" });
       shortcut.split("+").forEach((key, i, arr) => {
         kbdWrap.createEl("kbd", { text: key, cls: "tat-kbd" });
         if (i < arr.length - 1) {
-          kbdWrap.createEl("span", { text: " + ", cls: "tat-kbd-sep" });
+          kbdWrap.createSpan({ text: " + ", cls: "tat-kbd-sep" });
         }
       });
     });
