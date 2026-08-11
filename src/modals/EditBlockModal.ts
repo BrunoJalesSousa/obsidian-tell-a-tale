@@ -43,7 +43,7 @@ export class EditBlockModal extends Modal {
         .setName("Character")
         .addDropdown((dd) => {
           dd.addOption("", "— none —");
-          this.allChars.forEach((c) => dd.addOption(c.id, c.name));
+          this.allChars.forEach((c) => { dd.addOption(c.id, c.name); });
           dd.setValue(this.character?.id ?? "");
           dd.onChange((value) => {
             this.character = this.allChars.find((c) => c.id === value) ?? null;
@@ -54,25 +54,25 @@ export class EditBlockModal extends Modal {
     // Content textarea
     contentEl.createEl("p", { text: "Content", cls: "setting-item-name" });
 
-    const textarea = contentEl.createEl("textarea");
+    const textarea = contentEl.createEl("textarea") as HTMLTextAreaElement;
     textarea.value = this.content;
-    textarea.style.cssText = `
-      width: 100%;
-      min-height: 100px;
-      padding: 8px;
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      background: var(--background-primary);
-      color: var(--text-normal);
-      font-family: var(--font-text);
-      font-size: 0.95em;
-      resize: vertical;
-      box-sizing: border-box;
-      margin-bottom: 12px;
-    `;
+    textarea.setCssStyles({
+      width: "100%",
+      minHeight: "100px",
+      padding: "8px",
+      border: "1px solid var(--background-modifier-border)",
+      borderRadius: "4px",
+      background: "var(--background-primary)",
+      color: "var(--text-normal)",
+      fontFamily: "var(--font-text)",
+      fontSize: "0.95em",
+      resize: "vertical",
+      boxSizing: "border-box",
+      marginBottom: "12px",
+    });
 
     // Focus and place cursor at end
-    requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
       textarea.focus();
       textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
     });

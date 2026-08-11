@@ -1,6 +1,6 @@
 # Tell-A-Tale
 
-An Obsidian plugin for storytelling — write dialogue, monologue, narration, and scene direction with structured, visually distinct blocks.
+An Obsidian plugin for storytelling — write dialogue, monologue, narration, and scene direction with structured, visually distinct blocks. The objective was to put together a way to speedup dialogue construction while keeping it visually telling.
 
 ---
 
@@ -21,13 +21,6 @@ An Obsidian plugin for storytelling — write dialogue, monologue, narration, an
 1. Open Obsidian → Settings → Community Plugins → Browse
 2. Search for **Tell-A-Tale**
 3. Install and enable
-
-### Manual
-1. Download `main.js`, `styles.css`, and `manifest.json` from the [latest release](https://github.com/BrunoJalesSousa/obsidian-tell-a-tale/releases)
-2. Copy them into `.obsidian/plugins/tell-a-tale/` inside your vault
-3. Enable the plugin in Settings → Community Plugins
-
----
 
 ## Setup
 

@@ -65,17 +65,15 @@ function getBlockEnd(lines: string[], headerLine: number, prefix: string): numbe
 /** Extract the title text from a block's header line (text after [!callout-type]). */
 export function getBlockTitle(lines: string[], loc: BlockLocation): string {
   const match = lines[loc.start].match(/\[![^\]]+\]\s*(.*)/);
-  return match ? match[1].trim() : "";
+  return match ? (match[1]?.trim() ?? "") : "";
 }
 
 /** Extract the text content of a block (strips blockquote prefix from each line). */
 export function getBlockContent(lines: string[], loc: BlockLocation): string {
   const prefixRe = new RegExp(`^${loc.prefix.replace(/>/g, "\\>")}\\s?`);
-  return lines
-    .slice(loc.start + 1, loc.end + 1)
-    .map((l) => l.replace(prefixRe, ""))
-    .join("\n")
-    .trimEnd();
+  const sliced: string[] = lines.slice(loc.start + 1, loc.end + 1);
+  const stripped: string[] = sliced.map((l: string) => l.replace(prefixRe, ""));
+  return stripped.join("\n").trimEnd();
 }
 
 /** Build source lines for a block. */

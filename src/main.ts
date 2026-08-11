@@ -2,7 +2,6 @@ import { Plugin, Editor, TFile, MarkdownPostProcessorContext, Modal, Setting, se
 import { TellATaleSettings, DEFAULT_SETTINGS } from "./settings";
 import { TellATaleSettingTab } from "./settingsTab";
 import { insertBlock } from "./editor/insertBlock";
-import { injectCharacterStyles, removeCharacterStyles } from "./editor/styles";
 import { getVaultCharacters } from "./editor/characters";
 import {
   findBlockLocation,
@@ -24,11 +23,6 @@ export default class TellATalePlugin extends Plugin {
     await this.loadSettings();
     this.addSettingTab(new TellATaleSettingTab(this.app, this));
 
-    this.app.workspace.onLayoutReady(() => this.refreshCharacterStyles());
-    this.registerEvent(
-      this.app.metadataCache.on("changed", () => this.refreshCharacterStyles())
-    );
-
     this.registerMarkdownPostProcessor(
       (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
         this.processCallouts(el, ctx);
@@ -39,7 +33,6 @@ export default class TellATalePlugin extends Plugin {
     this.addCommand({
       id: "insert-dialogue",
       name: "Insert Dialogue",
-      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "d" }],
       editorCallback: (editor: Editor) => {
         const chars = this.getVaultCharacters();
         if (chars.length === 0) {
@@ -56,7 +49,6 @@ export default class TellATalePlugin extends Plugin {
     this.addCommand({
       id: "insert-monologue",
       name: "Insert Monologue",
-      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "m" }],
       editorCallback: (editor: Editor) => {
         const chars = this.getVaultCharacters();
         if (chars.length === 0) {
@@ -73,7 +65,6 @@ export default class TellATalePlugin extends Plugin {
     this.addCommand({
       id: "insert-narration",
       name: "Insert Narration",
-      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "o" }],
       editorCallback: (editor: Editor) => {
         insertBlock(editor, "tat-narration");
       },
@@ -83,7 +74,6 @@ export default class TellATalePlugin extends Plugin {
     this.addCommand({
       id: "insert-direction",
       name: "Insert Direction",
-      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "g" }],
       editorCallback: (editor: Editor) => {
         insertBlock(editor, "tat-direction");
       },
@@ -93,23 +83,14 @@ export default class TellATalePlugin extends Plugin {
     this.addCommand({
       id: "insert-cast-change",
       name: "Insert Cast Change",
-      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "a" }],
       editorCallback: (editor: Editor) => {
         new CastChangeModal(this.app, this, editor).open();
       },
     });
   }
 
-  onunload() {
-    removeCharacterStyles();
-  }
-
   getVaultCharacters(): Character[] {
     return getVaultCharacters(this.app, this.settings.characterTag);
-  }
-
-  refreshCharacterStyles(): void {
-    injectCharacterStyles(this.getVaultCharacters());
   }
 
   private processCallouts(
@@ -134,6 +115,9 @@ export default class TellATalePlugin extends Plugin {
       const calloutType = callout.dataset.callout!;
       const charId = callout.dataset.calloutMetadata;
       const char = chars.find((c) => c.id === charId) ?? null;
+      if (char) {
+        callout.setCssProps({ "--tat-char-color": char.color, "--tat-char-bg": char.color + "18" });
+      }
 
       const counterKey = `${calloutType}|${charId ?? ""}`;
       const sectionIndex = sectionCounters.get(counterKey) ?? 0;
@@ -173,36 +157,39 @@ export default class TellATalePlugin extends Plugin {
         attr: { "aria-label": "Edit block" },
       });
       setIcon(editBtn, "pencil");
-      editBtn.addEventListener("click", async (e) => {
+      editBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         e.preventDefault();
+        void (async () => {
+          const loc = await findBlockLocation(
+            this.app, ctx.sourcePath, calloutType, charId,
+            sectionIndex, sectionInfo?.lineStart, sectionInfo?.lineEnd
+          );
+          if (!loc) return;
 
-        const loc = await findBlockLocation(
-          this.app, ctx.sourcePath, calloutType, charId,
-          sectionIndex, sectionInfo?.lineStart, sectionInfo?.lineEnd
-        );
-        if (!loc) return;
+          const file = this.app.vault.getAbstractFileByPath(ctx.sourcePath);
+          if (!(file instanceof TFile)) return;
+          const lines = (await this.app.vault.read(file)).split("\n");
 
-        const file = this.app.vault.getAbstractFileByPath(ctx.sourcePath);
-        if (!(file instanceof TFile)) return;
-        const lines = (await this.app.vault.read(file)).split("\n");
+          // Cast change stores its data in the title, not the body
+          const isCast = calloutType === "tat-cast";
+          const currentContent = isCast
+            ? getBlockTitle(lines, loc)
+            : getBlockContent(lines, loc);
+          const editChars = CHAR_TYPES.has(calloutType) ? chars : [];
 
-        // Cast change stores its data in the title, not the body
-        const isCast = calloutType === "tat-cast";
-        const currentContent = isCast
-          ? getBlockTitle(lines, loc)
-          : getBlockContent(lines, loc);
-        const editChars = CHAR_TYPES.has(calloutType) ? chars : [];
-
-        new EditBlockModal(
-          this.app, currentContent, char, editChars, calloutType,
-          async (newContent, newChar) => {
-            const newLines = isCast
-              ? [`${loc.prefix} [!tat-cast] ${newContent}`, `${loc.prefix} `]
-              : buildBlockLines(loc.prefix, calloutType, newChar, newContent);
-            await replaceBlockInFile(this.app, ctx.sourcePath, loc, newLines);
-          }
-        ).open();
+          new EditBlockModal(
+            this.app, currentContent, char, editChars, calloutType,
+            (newContent, newChar) => {
+              void (async () => {
+                const newLines = isCast
+                  ? [`${loc.prefix} [!tat-cast] ${newContent}`, `${loc.prefix} `]
+                  : buildBlockLines(loc.prefix, calloutType, newChar, newContent);
+                await replaceBlockInFile(this.app, ctx.sourcePath, loc, newLines);
+              })();
+            }
+          ).open();
+        })();
       });
 
       // Delete button
@@ -215,26 +202,27 @@ export default class TellATalePlugin extends Plugin {
         e.stopPropagation();
         e.preventDefault();
 
-        this.confirmDelete(async () => {
-          const loc = await findBlockLocation(
-            this.app, ctx.sourcePath, calloutType, charId,
-            sectionIndex, sectionInfo?.lineStart, sectionInfo?.lineEnd
-          );
-          if (!loc) return;
+        this.confirmDelete(() => {
+          void (async () => {
+            const loc = await findBlockLocation(
+              this.app, ctx.sourcePath, calloutType, charId,
+              sectionIndex, sectionInfo?.lineStart, sectionInfo?.lineEnd
+            );
+            if (!loc) return;
 
-          await deleteBlockFromFile(this.app, ctx.sourcePath, loc);
+            await deleteBlockFromFile(this.app, ctx.sourcePath, loc);
+          })();
         });
       });
     });
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<TellATaleSettings>);
   }
 
   async saveSettings() {
     await this.saveData(this.settings);
-    this.refreshCharacterStyles();
   }
 
   private confirmDelete(onConfirm: () => void): void {
@@ -247,7 +235,7 @@ export default class TellATalePlugin extends Plugin {
     new Setting(modal.contentEl)
       .addButton((btn) => btn.setButtonText("Cancel").onClick(() => modal.close()))
       .addButton((btn) =>
-        btn.setButtonText("Delete").setWarning().onClick(() => {
+        btn.setButtonText("Delete").setDestructive().onClick(() => {
           modal.close();
           onConfirm();
         })

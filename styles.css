@@ -315,3 +315,122 @@
   display: block;
   flex-shrink: 0;
 }
+
+/* ── Settings Tab ──────────────────────────────────────────────────────────── */
+.tat-chips-section {
+  margin: 0 0 6px;
+}
+
+.tat-chips-label {
+  font-size: 0.82em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.5;
+  margin: 0 0 10px;
+}
+
+.tat-chips-empty {
+  margin: 0;
+}
+
+.tat-chips-hint {
+  margin-top: 0;
+}
+
+.tat-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px 5px 8px;
+  border-radius: 999px;
+  border: 1.5px solid var(--tat-chip-border);
+  background: var(--tat-chip-bg);
+  font-size: 0.88em;
+  line-height: 1;
+  cursor: default;
+}
+
+.tat-chip-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--tat-chip-color);
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px var(--tat-chip-dot-shadow);
+}
+
+.tat-chip-name {
+  font-weight: 500;
+}
+
+.tat-chip-id {
+  font-size: 0.78em;
+  font-family: monospace;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--tat-chip-id-bg);
+  color: var(--tat-chip-color);
+  opacity: 0.8;
+}
+
+.tat-chip-avatar {
+  font-size: 0.72em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--background-modifier-success);
+  color: var(--text-success);
+  font-family: monospace;
+}
+
+.tat-hotkeys-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.tat-hotkey-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+}
+
+.tat-hotkey-action {
+  font-size: 0.85em;
+  opacity: 0.7;
+}
+
+.tat-kbd-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.tat-kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  font-size: 0.82em;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.tat-kbd-sep {
+  font-size: 0.75em;
+  opacity: 0.5;
+}
