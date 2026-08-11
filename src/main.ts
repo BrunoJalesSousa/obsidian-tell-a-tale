@@ -235,7 +235,7 @@ export default class TellATalePlugin extends Plugin {
     new Setting(modal.contentEl)
       .addButton((btn) => btn.setButtonText("Cancel").onClick(() => modal.close()))
       .addButton((btn) =>
-        btn.setButtonText("Delete").setDestructive().onClick(() => {
+        btn.setButtonText("Delete").onClick(() => {
           modal.close();
           onConfirm();
         })

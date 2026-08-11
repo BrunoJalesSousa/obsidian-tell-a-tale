@@ -72,7 +72,7 @@ export function getBlockTitle(lines: string[], loc: BlockLocation): string {
 export function getBlockContent(lines: string[], loc: BlockLocation): string {
   const prefixRe = new RegExp(`^${loc.prefix.replace(/>/g, "\\>")}\\s?`);
   const sliced: string[] = lines.slice(loc.start + 1, loc.end + 1);
-  const stripped: string[] = sliced.map((l: string) => l.replace(prefixRe, ""));
+  const stripped = sliced.map((l: string) => l.replace(prefixRe, "")) as string[];
   return stripped.join("\n").trimEnd();
 }
 

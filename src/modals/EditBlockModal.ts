@@ -54,7 +54,7 @@ export class EditBlockModal extends Modal {
     // Content textarea
     contentEl.createEl("p", { text: "Content", cls: "setting-item-name" });
 
-    const textarea = contentEl.createEl("textarea") as HTMLTextAreaElement;
+    const textarea = contentEl.createEl("textarea");
     textarea.value = this.content;
     textarea.setCssStyles({
       width: "100%",
@@ -86,7 +86,8 @@ export class EditBlockModal extends Modal {
           .setButtonText("Save")
           .setCta()
           .onClick(() => {
-            this.onSave(textarea.value.trimEnd(), this.character);
+            const newContent: string = textarea.value.trimEnd();
+            this.onSave(newContent, this.character);
             this.close();
           })
       );

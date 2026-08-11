@@ -1,7 +1,7 @@
 {
   "id": "tell-a-tale",
   "name": "Tell-A-Tale",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "minAppVersion": "1.4.0",
   "description": "A storytelling toolkit for writing game lore, dialogue, narration, and scene direction.",
   "author": "Bruno Jales de Sousa",

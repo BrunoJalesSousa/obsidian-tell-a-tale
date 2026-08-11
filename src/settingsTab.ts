@@ -13,8 +13,6 @@ export class TellATaleSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    new Setting(containerEl).setName("Tell-A-Tale").setHeading();
-
     // ── Character Discovery ───────────────────────────────────────────────────
     new Setting(containerEl).setName("Characters").setHeading();
 
