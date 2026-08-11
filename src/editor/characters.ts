@@ -9,7 +9,7 @@ export function getVaultCharacters(app: App, characterTag: string): Character[] 
     .filter((file) => {
       const cache = app.metadataCache.getFileCache(file);
       if (!cache) return false;
-      const tags = getAllTags(cache) ?? [];
+      const tags: string[] = getAllTags(cache) ?? [];
       return tags.includes(tag);
     })
     .map((file) => {
@@ -56,7 +56,8 @@ function hslChannel(h: number, a: number, ln: number, n: number): string {
   const c: number = ln - a * maxVal;
   const byte: number = Math.round(255 * c);
   const hexStr: string = byte.toString(16);
-  return hexStr.padStart(2, "0");
+  const padded: string = hexStr.padStart(2, "0");
+  return padded;
 }
 
 function hslToHex(h: number, s: number, l: number): string {

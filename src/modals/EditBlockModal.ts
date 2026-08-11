@@ -86,8 +86,7 @@ export class EditBlockModal extends Modal {
           .setButtonText("Save")
           .setCta()
           .onClick(() => {
-            const newContent: string = String(textarea.value).trimEnd();
-            this.onSave(newContent, this.character);
+            this.onSave(textarea.value.trimEnd(), this.character);
             this.close();
           })
       );
