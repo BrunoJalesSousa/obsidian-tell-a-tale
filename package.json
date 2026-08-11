@@ -5,8 +5,8 @@
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
-    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && cp main.js styles.css manifest.json /home/jales/Documents/ProjectX/.obsidian/plugins/tell-a-tale/",
-    "build:ci": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "deploy": "npm run build && cp main.js styles.css manifest.json /home/jales/Documents/ProjectX/.obsidian/plugins/tell-a-tale/"
   },
   "devDependencies": {
     "@types/node": "^16.11.6",
