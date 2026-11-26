@@ -59,6 +59,17 @@ Embed an image in the character's note with a filename starting with `tat-avatar
 
 Any image format Obsidian supports works. Avatars appear beside dialogue and monologue blocks when **Show avatars** is enabled in settings.
 
+**Or use a property.** If a note has no `tat-avatar-` embed, Tell-A-Tale can read the avatar from a note property instead (a path or a link) — handy when another plugin manages the image, like Make-a-Wiki:
+
+```yaml
+---
+tags: [dialogue-character]
+avatar: Media/alice.png
+---
+```
+
+The property name is set in **Settings → Avatar property** (`avatar` by default on new installs; off on installs that predate it, so turn it on there). An embed always takes priority, so existing avatars never change.
+
 ---
 
 ## Block Types

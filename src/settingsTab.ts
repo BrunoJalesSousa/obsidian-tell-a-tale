@@ -75,7 +75,8 @@ export class TellATaleSettingTab extends PluginSettingTab {
 
     containerEl.createEl("p", {
       text: 'To set a custom color, add a "color" property (hex) to the character note. ' +
-            'For an avatar, embed an image named "tat-avatar-[anything]" in the character note.',
+            'For an avatar, embed an image named "tat-avatar-[anything]"' +
+            (this.plugin.settings.avatarProperty ? ', or set an "' + this.plugin.settings.avatarProperty + '" property.' : "."),
       cls: "setting-item-description tat-chips-hint",
     });
 
@@ -96,8 +97,25 @@ export class TellATaleSettingTab extends PluginSettingTab {
           })
       );
 
+    new Setting(containerEl)
+      .setName("Avatar property")
+      .setDesc(
+        "Note property that holds the avatar image, as a path or [[link]] (e.g. avatar: Media/alice.png). " +
+        "Used only when the note has no \"tat-avatar-\" embed, so existing avatars never change. " +
+        "Empty = embeds only. Plugins like Make-a-Wiki fill this property in for you."
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("avatar")
+          .setValue(this.plugin.settings.avatarProperty)
+          .onChange((value) => {
+            this.plugin.settings.avatarProperty = value.trim();
+            void this.plugin.saveSettings();
+          })
+      );
+
     containerEl.createEl("p", {
-      text: 'Avatar images must be embedded in the character\'s note and named with the prefix "tat-avatar-" ' +
+      text: 'Without the property, embed an image named with the prefix "tat-avatar-" in the character\'s note ' +
             '(e.g. ![[tat-avatar-alice.png]]). Any image format Obsidian supports works.',
       cls: "setting-item-description",
     });

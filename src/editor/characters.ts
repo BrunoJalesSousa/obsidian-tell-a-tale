@@ -1,7 +1,7 @@
 import { App, getAllTags, TFile } from "obsidian";
 import { Character } from "../types";
 
-export function getVaultCharacters(app: App, characterTag: string): Character[] {
+export function getVaultCharacters(app: App, characterTag: string, avatarProperty = "avatar"): Character[] {
   const tag = characterTag.startsWith("#") ? characterTag : `#${characterTag}`;
 
   return app.vault
@@ -23,21 +23,39 @@ export function getVaultCharacters(app: App, characterTag: string): Character[] 
         .replace(/\s+/g, "-")
         .replace(/[^a-z0-9-]/g, "");
 
-      // Find the first embedded image whose filename starts with "tat-avatar-"
-      const embeds = cache?.embeds ?? [];
-      const avatarEmbed = embeds.find((e) => {
-        const filename = e.link.split("/").pop() ?? e.link;
-        return /^tat-avatar-/i.test(filename);
-      });
-      const avatarFile = avatarEmbed
-        ? app.metadataCache.getFirstLinkpathDest(avatarEmbed.link, file.path)
-        : null;
-      const avatarPath =
-        avatarFile instanceof TFile ? avatarFile.path : undefined;
+      // 1. The first embedded image whose filename starts with "tat-avatar-" (the original behaviour, and it
+      //    always wins, so an avatar that shows today never changes).
+      // 2. Only if there's no such embed: the avatar property (path or [[link]]), e.g. set by Make-a-Wiki.
+      const avatarFile =
+        resolveAvatarEmbed(app, file, cache?.embeds ?? []) ??
+        resolveAvatarProperty(app, file, avatarProperty ? fm[avatarProperty] : undefined);
+      const avatarPath = avatarFile?.path;
 
       return { id, name, color, noteLink: `[[${file.basename}]]`, avatarPath };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "avif"]);
+
+/** The avatar property as an image file in the vault, or null (URLs, lists, notes, missing files are ignored). */
+function resolveAvatarProperty(app: App, file: TFile, value: unknown): TFile | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const linkpath = value.trim().replace(/^!?\[\[|\]\]$/g, "").split("|")[0].trim();
+  if (!linkpath) return null;
+  const direct = app.vault.getAbstractFileByPath(linkpath);
+  const target = direct instanceof TFile ? direct : app.metadataCache.getFirstLinkpathDest(linkpath, file.path);
+  return target instanceof TFile && IMAGE_EXTENSIONS.has(target.extension.toLowerCase()) ? target : null;
+}
+
+function resolveAvatarEmbed(app: App, file: TFile, embeds: { link: string }[]): TFile | null {
+  const avatarEmbed = embeds.find((e) => {
+    const filename = e.link.split("/").pop() ?? e.link;
+    return /^tat-avatar-/i.test(filename);
+  });
+  if (!avatarEmbed) return null;
+  const linked = app.metadataCache.getFirstLinkpathDest(avatarEmbed.link, file.path);
+  return linked instanceof TFile ? linked : null;
 }
 
 function generateColor(name: string): string {

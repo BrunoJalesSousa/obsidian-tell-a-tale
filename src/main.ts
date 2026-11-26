@@ -1,4 +1,5 @@
 import { Plugin, Editor, Menu, TFile, MarkdownPostProcessorContext, setIcon } from "obsidian";
+import { EditorView } from "@codemirror/view";
 import { TellATaleSettings, DEFAULT_SETTINGS } from "./settings";
 import { TellATaleSettingTab } from "./settingsTab";
 import { insertBlock } from "./editor/insertBlock";
@@ -139,7 +140,7 @@ export default class TellATalePlugin extends Plugin {
   }
 
   getVaultCharacters(): Character[] {
-    return getVaultCharacters(this.app, this.settings.characterTag);
+    return getVaultCharacters(this.app, this.settings.characterTag, this.settings.avatarProperty);
   }
 
   private processCallouts(
@@ -147,7 +148,6 @@ export default class TellATalePlugin extends Plugin {
     ctx: MarkdownPostProcessorContext
   ): void {
     const chars = this.getVaultCharacters();
-    const sectionInfo = ctx.getSectionInfo(el);
 
     const CHAR_TYPES = new Set(["tat-dialogue", "tat-monologue"]);
     const ALL_TYPES = [
@@ -210,9 +210,11 @@ export default class TellATalePlugin extends Plugin {
         e.stopPropagation();
         e.preventDefault();
         void (async () => {
+          const range = this.getSourceRange(el, callout, ctx);
+          if (!range) return;
           const loc = await findBlockLocation(
             this.app, ctx.sourcePath, calloutType, charId,
-            sectionIndex, sectionInfo?.lineStart, sectionInfo?.lineEnd
+            sectionIndex, range.lineStart, range.lineEnd
           );
           if (!loc) return;
 
@@ -244,8 +246,46 @@ export default class TellATalePlugin extends Plugin {
     });
   }
 
+  /**
+   * Source line range (0-based, inclusive) that the rendered `el` came from.
+   * Resolved at click time so edits made since rendering don't shift it.
+   *
+   * In Live Preview the callout is a widget inside the editor; Obsidian gives
+   * no usable section info there, so ask CodeMirror where the widget starts.
+   * In Reading view, section info is reliable.
+   */
+  private getSourceRange(
+    el: HTMLElement,
+    callout: HTMLElement,
+    ctx: MarkdownPostProcessorContext
+  ): { lineStart: number; lineEnd: number } | null {
+    const cm = callout.isConnected ? EditorView.findFromDOM(callout) : null;
+    if (cm) {
+      let pos: number;
+      try {
+        pos = cm.posAtDOM(callout);
+      } catch {
+        return null;
+      }
+      const doc = cm.state.doc;
+      const first = doc.lineAt(pos).number; // 1-based
+      // The widget covers one contiguous blockquote; stop where it ends.
+      let last = first;
+      while (last < doc.lines && doc.line(last + 1).text.startsWith(">")) last++;
+      return { lineStart: first - 1, lineEnd: last - 1 };
+    }
+
+    const info = ctx.getSectionInfo(el);
+    if (!info) return null;
+    return { lineStart: info.lineStart, lineEnd: info.lineEnd };
+  }
+
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<TellATaleSettings>);
+    const saved = (await this.loadData()) as Partial<TellATaleSettings> | null;
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
+    // Installs from before the avatar property existed keep embed-only avatars until the user opts in,
+    // so nobody's existing dialogues change on update.
+    if (saved && saved.avatarProperty === undefined) this.settings.avatarProperty = "";
   }
 
   async saveSettings() {
